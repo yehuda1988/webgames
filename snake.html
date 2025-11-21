@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>משחק הנחש - Snake Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+        }
+
+        .score, .high-score {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        canvas {
+            border: 4px solid #667eea;
+            border-radius: 10px;
+            background: #f0f0f0;
+            display: block;
+            margin: 0 auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .controls {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .controls p {
+            margin: 5px 0;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 12px 30px;
+            font-size: 1.1em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .game-over {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            text-align: center;
+        }
+
+        .game-over.show {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -60%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+
+        .game-over h2 {
+            color: #764ba2;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .game-over p {
+            font-size: 1.3em;
+            margin: 10px 0;
+            color: #333;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐍 משחק הנחש</h1>
+
+        <div class="game-info">
+            <div class="score">ניקוד: <span id="score">0</span></div>
+            <div class="high-score">שיא: <span id="highScore">0</span></div>
+        </div>
+
+        <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+        <div class="controls">
+            <p><strong>חצים:</strong> הזז את הנחש</p>
+            <p><strong>רווח:</strong> השהה/המשך</p>
+        </div>
+
+        <button id="restartBtn">התחל משחק חדש</button>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="game-over" id="gameOver">
+        <h2>המשחק הסתיים!</h2>
+        <p>הניקוד שלך: <span id="finalScore">0</span></p>
+        <p id="newRecord" style="color: #667eea; font-weight: bold; display: none;">🎉 שיא חדש! 🎉</p>
+        <button id="playAgainBtn">שחק שוב</button>
+    </div>
+
+    <script>
+        // קבועים
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gridSize = 20;
+        const tileCount = canvas.width / gridSize;
+
+        // משתני משחק
+        let snake = [{ x: 10, y: 10 }];
+        let velocityX = 0;
+        let velocityY = 0;
+        let foodX = 15;
+        let foodY = 15;
+        let score = 0;
+        let highScore = localStorage.getItem('snakeHighScore') || 0;
+        let gameRunning = false;
+        let gamePaused = false;
+        let gameLoop;
+
+        // עדכון תצוגת השיא
+        document.getElementById('highScore').textContent = highScore;
+
+        // פונקציה להתחלת המשחק
+        function startGame() {
+            snake = [{ x: 10, y: 10 }];
+            velocityX = 1;
+            velocityY = 0;
+            score = 0;
+            gameRunning = true;
+            gamePaused = false;
+            document.getElementById('score').textContent = score;
+            document.getElementById('gameOver').classList.remove('show');
+            document.getElementById('overlay').classList.remove('show');
+            placeFood();
+
+            if (gameLoop) clearInterval(gameLoop);
+            gameLoop = setInterval(update, 100);
+        }
+
+        // פונקציה למיקום אוכל אקראי
+        function placeFood() {
+            foodX = Math.floor(Math.random() * tileCount);
+            foodY = Math.floor(Math.random() * tileCount);
+
+            // ודא שהאוכל לא על הנחש
+            for (let segment of snake) {
+                if (segment.x === foodX && segment.y === foodY) {
+                    placeFood();
+                    return;
+                }
+            }
+        }
+
+        // פונקציה לעדכון המשחק
+        function update() {
+            if (!gameRunning || gamePaused) return;
+
+            // הזז את הנחש
+            const head = { x: snake[0].x + velocityX, y: snake[0].y + velocityY };
+
+            // בדוק התנגשות בקירות
+            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+                gameOver();
+                return;
+            }
+
+            // בדוק התנגשות בגוף
+            for (let segment of snake) {
+                if (head.x === segment.x && head.y === segment.y) {
+                    gameOver();
+                    return;
+                }
+            }
+
+            snake.unshift(head);
+
+            // בדוק אם אכל אוכל
+            if (head.x === foodX && head.y === foodY) {
+                score++;
+                document.getElementById('score').textContent = score;
+                placeFood();
+            } else {
+                snake.pop();
+            }
+
+            draw();
+        }
+
+        // פונקציה לציור המשחק
+        function draw() {
+            // נקה את הקנבס
+            ctx.fillStyle = '#f0f0f0';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // צייר רשת
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i < tileCount; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * gridSize, 0);
+                ctx.lineTo(i * gridSize, canvas.height);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(0, i * gridSize);
+                ctx.lineTo(canvas.width, i * gridSize);
+                ctx.stroke();
+            }
+
+            // צייר את האוכל
+            const gradient = ctx.createRadialGradient(
+                foodX * gridSize + gridSize / 2,
+                foodY * gridSize + gridSize / 2,
+                0,
+                foodX * gridSize + gridSize / 2,
+                foodY * gridSize + gridSize / 2,
+                gridSize / 2
+            );
+            gradient.addColorStop(0, '#ff6b6b');
+            gradient.addColorStop(1, '#c92a2a');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(
+                foodX * gridSize + gridSize / 2,
+                foodY * gridSize + gridSize / 2,
+                gridSize / 2 - 2,
+                0,
+                Math.PI * 2
+            );
+            ctx.fill();
+
+            // צייר את הנחש
+            snake.forEach((segment, index) => {
+                const snakeGradient = ctx.createLinearGradient(
+                    segment.x * gridSize,
+                    segment.y * gridSize,
+                    segment.x * gridSize + gridSize,
+                    segment.y * gridSize + gridSize
+                );
+
+                if (index === 0) {
+                    // ראש הנחש
+                    snakeGradient.addColorStop(0, '#667eea');
+                    snakeGradient.addColorStop(1, '#764ba2');
+                } else {
+                    // גוף הנחש
+                    const alpha = 1 - (index / snake.length) * 0.5;
+                    snakeGradient.addColorStop(0, `rgba(102, 126, 234, ${alpha})`);
+                    snakeGradient.addColorStop(1, `rgba(118, 75, 162, ${alpha})`);
+                }
+
+                ctx.fillStyle = snakeGradient;
+                ctx.fillRect(
+                    segment.x * gridSize + 1,
+                    segment.y * gridSize + 1,
+                    gridSize - 2,
+                    gridSize - 2
+                );
+
+                // צייר עיניים לראש
+                if (index === 0) {
+                    ctx.fillStyle = 'white';
+                    const eyeSize = 3;
+                    const eyeOffset = 5;
+
+                    if (velocityX === 1) { // ימינה
+                        ctx.fillRect(segment.x * gridSize + gridSize - eyeOffset - eyeSize, segment.y * gridSize + eyeOffset, eyeSize, eyeSize);
+                        ctx.fillRect(segment.x * gridSize + gridSize - eyeOffset - eyeSize, segment.y * gridSize + gridSize - eyeOffset - eyeSize, eyeSize, eyeSize);
+                    } else if (velocityX === -1) { // שמאלה
+                        ctx.fillRect(segment.x * gridSize + eyeOffset, segment.y * gridSize + eyeOffset, eyeSize, eyeSize);
+                        ctx.fillRect(segment.x * gridSize + eyeOffset, segment.y * gridSize + gridSize - eyeOffset - eyeSize, eyeSize, eyeSize);
+                    } else if (velocityY === -1) { // למעלה
+                        ctx.fillRect(segment.x * gridSize + eyeOffset, segment.y * gridSize + eyeOffset, eyeSize, eyeSize);
+                        ctx.fillRect(segment.x * gridSize + gridSize - eyeOffset - eyeSize, segment.y * gridSize + eyeOffset, eyeSize, eyeSize);
+                    } else if (velocityY === 1) { // למטה
+                        ctx.fillRect(segment.x * gridSize + eyeOffset, segment.y * gridSize + gridSize - eyeOffset - eyeSize, eyeSize, eyeSize);
+                        ctx.fillRect(segment.x * gridSize + gridSize - eyeOffset - eyeSize, segment.y * gridSize + gridSize - eyeOffset - eyeSize, eyeSize, eyeSize);
+                    }
+                }
+            });
+        }
+
+        // פונקציה לסיום המשחק
+        function gameOver() {
+            gameRunning = false;
+            clearInterval(gameLoop);
+
+            document.getElementById('finalScore').textContent = score;
+
+            // בדוק שיא
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('snakeHighScore', highScore);
+                document.getElementById('highScore').textContent = highScore;
+                document.getElementById('newRecord').style.display = 'block';
+            } else {
+                document.getElementById('newRecord').style.display = 'none';
+            }
+
+            document.getElementById('overlay').classList.add('show');
+            document.getElementById('gameOver').classList.add('show');
+        }
+
+        // טיפול במקלדת
+        document.addEventListener('keydown', (e) => {
+            if (!gameRunning) return;
+
+            switch(e.key) {
+                case 'ArrowUp':
+                    if (velocityY !== 1) {
+                        velocityX = 0;
+                        velocityY = -1;
+                    }
+                    e.preventDefault();
+                    break;
+                case 'ArrowDown':
+                    if (velocityY !== -1) {
+                        velocityX = 0;
+                        velocityY = 1;
+                    }
+                    e.preventDefault();
+                    break;
+                case 'ArrowLeft':
+                    if (velocityX !== 1) {
+                        velocityX = -1;
+                        velocityY = 0;
+                    }
+                    e.preventDefault();
+                    break;
+                case 'ArrowRight':
+                    if (velocityX !== -1) {
+                        velocityX = 1;
+                        velocityY = 0;
+                    }
+                    e.preventDefault();
+                    break;
+                case ' ':
+                    gamePaused = !gamePaused;
+                    e.preventDefault();
+                    break;
+            }
+        });
+
+        // כפתורים
+        document.getElementById('restartBtn').addEventListener('click', startGame);
+        document.getElementById('playAgainBtn').addEventListener('click', startGame);
+
+        // התחל את המשחק
+        draw();
+    </script>
+</body>
+</html>
