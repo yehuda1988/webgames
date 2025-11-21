@@ -41,9 +41,11 @@
             justify-content: space-around;
             margin-bottom: 20px;
             font-size: 1.2em;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
-        .score, .high-score {
+        .score, .high-score, .player-info, .difficulty-info {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 10px 20px;
@@ -71,7 +73,7 @@
         }
 
         button {
-            margin-top: 15px;
+            margin: 10px 5px;
             padding: 12px 30px;
             font-size: 1.1em;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -92,7 +94,11 @@
             transform: translateY(0);
         }
 
-        .game-over {
+        button.secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .modal {
             display: none;
             position: fixed;
             top: 50%;
@@ -104,9 +110,13 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
             z-index: 1000;
             text-align: center;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
         }
 
-        .game-over.show {
+        .modal.show {
             display: block;
             animation: fadeIn 0.3s;
         }
@@ -116,13 +126,13 @@
             to { opacity: 1; transform: translate(-50%, -50%); }
         }
 
-        .game-over h2 {
+        .modal h2 {
             color: #764ba2;
             margin-bottom: 20px;
             font-size: 2em;
         }
 
-        .game-over p {
+        .modal p {
             font-size: 1.3em;
             margin: 10px 0;
             color: #333;
@@ -142,6 +152,122 @@
         .overlay.show {
             display: block;
         }
+
+        .input-group {
+            margin: 20px 0;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1em;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            text-align: center;
+            font-family: inherit;
+        }
+
+        .difficulty-options, .skin-options {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .difficulty-btn, .skin-btn {
+            padding: 15px 25px;
+            border: 3px solid #667eea;
+            background: white;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1em;
+            font-weight: bold;
+        }
+
+        .difficulty-btn:hover, .skin-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .difficulty-btn.selected, .skin-btn.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #764ba2;
+        }
+
+        .difficulty-btn.easy { border-color: #51cf66; }
+        .difficulty-btn.easy.selected { background: linear-gradient(135deg, #51cf66 0%, #37b24d 100%); }
+
+        .difficulty-btn.medium { border-color: #ffd43b; }
+        .difficulty-btn.medium.selected { background: linear-gradient(135deg, #ffd43b 0%, #fab005 100%); }
+
+        .difficulty-btn.hard { border-color: #ff6b6b; }
+        .difficulty-btn.hard.selected { background: linear-gradient(135deg, #ff6b6b 0%, #f03e3e 100%); }
+
+        .skin-preview {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            margin: 10px auto;
+        }
+
+        .leaderboard {
+            margin: 20px 0;
+            text-align: right;
+        }
+
+        .leaderboard-entry {
+            background: #f8f9fa;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-right: 4px solid #667eea;
+        }
+
+        .leaderboard-entry.gold { border-right-color: #ffd700; background: #fffbea; }
+        .leaderboard-entry.silver { border-right-color: #c0c0c0; background: #f8f9fa; }
+        .leaderboard-entry.bronze { border-right-color: #cd7f32; background: #fff4e6; }
+
+        .leaderboard-rank {
+            font-weight: bold;
+            font-size: 1.2em;
+            color: #667eea;
+            margin-left: 10px;
+        }
+
+        .leaderboard-name {
+            flex-grow: 1;
+            text-align: right;
+            padding: 0 15px;
+        }
+
+        .leaderboard-score {
+            font-weight: bold;
+            color: #764ba2;
+        }
+
+        .difficulty-badge {
+            font-size: 0.8em;
+            padding: 3px 8px;
+            border-radius: 5px;
+            margin-right: 5px;
+        }
+
+        .difficulty-badge.easy { background: #51cf66; color: white; }
+        .difficulty-badge.medium { background: #ffd43b; color: #333; }
+        .difficulty-badge.hard { background: #ff6b6b; color: white; }
     </style>
 </head>
 <body>
@@ -149,8 +275,9 @@
         <h1>🐍 משחק הנחש</h1>
 
         <div class="game-info">
+            <div class="player-info">שחקן: <span id="playerName">אורח</span></div>
+            <div class="difficulty-info">רמה: <span id="difficultyDisplay">בינוני</span></div>
             <div class="score">ניקוד: <span id="score">0</span></div>
-            <div class="high-score">שיא: <span id="highScore">0</span></div>
         </div>
 
         <canvas id="gameCanvas" width="400" height="400"></canvas>
@@ -161,14 +288,76 @@
         </div>
 
         <button id="restartBtn">התחל משחק חדש</button>
+        <button id="settingsBtn" class="secondary">הגדרות</button>
+        <button id="leaderboardBtn" class="secondary">לוח שיאים</button>
     </div>
 
+    <!-- Settings Modal -->
     <div class="overlay" id="overlay"></div>
-    <div class="game-over" id="gameOver">
+    <div class="modal" id="settingsModal">
+        <h2>הגדרות משחק</h2>
+
+        <div class="input-group">
+            <label>שם השחקן:</label>
+            <input type="text" id="playerNameInput" maxlength="20" placeholder="הזן שם...">
+        </div>
+
+        <div class="input-group">
+            <label>בחר רמת קושי:</label>
+            <div class="difficulty-options">
+                <button class="difficulty-btn easy" data-difficulty="easy">
+                    😊 קל<br><small>(איטי)</small>
+                </button>
+                <button class="difficulty-btn medium selected" data-difficulty="medium">
+                    🙂 בינוני<br><small>(רגיל)</small>
+                </button>
+                <button class="difficulty-btn hard" data-difficulty="hard">
+                    😎 קשה<br><small>(מהיר)</small>
+                </button>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>בחר דמות נחש:</label>
+            <div class="skin-options">
+                <button class="skin-btn selected" data-skin="classic">
+                    <div class="skin-preview" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                    קלאסי
+                </button>
+                <button class="skin-btn" data-skin="fire">
+                    <div class="skin-preview" style="background: linear-gradient(135deg, #ff6b6b 0%, #ff922b 100%);"></div>
+                    אש
+                </button>
+                <button class="skin-btn" data-skin="ocean">
+                    <div class="skin-preview" style="background: linear-gradient(135deg, #1c7ed6 0%, #15aabf 100%);"></div>
+                    אוקיינוס
+                </button>
+                <button class="skin-btn" data-skin="forest">
+                    <div class="skin-preview" style="background: linear-gradient(135deg, #51cf66 0%, #2f9e44 100%);"></div>
+                    יער
+                </button>
+            </div>
+        </div>
+
+        <button id="saveSettingsBtn">שמור והתחל</button>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div class="modal" id="gameOverModal">
         <h2>המשחק הסתיים!</h2>
         <p>הניקוד שלך: <span id="finalScore">0</span></p>
         <p id="newRecord" style="color: #667eea; font-weight: bold; display: none;">🎉 שיא חדש! 🎉</p>
         <button id="playAgainBtn">שחק שוב</button>
+        <button id="viewLeaderboardBtn" class="secondary">צפה בלוח שיאים</button>
+    </div>
+
+    <!-- Leaderboard Modal -->
+    <div class="modal" id="leaderboardModal">
+        <h2>🏆 לוח שיאים</h2>
+        <div class="leaderboard" id="leaderboardContent">
+            <p style="color: #999;">אין עדיין שיאים...</p>
+        </div>
+        <button id="closeLeaderboardBtn">סגור</button>
     </div>
 
     <script>
@@ -178,6 +367,24 @@
         const gridSize = 20;
         const tileCount = canvas.width / gridSize;
 
+        // הגדרות משחק
+        let playerName = localStorage.getItem('snakePlayerName') || 'אורח';
+        let difficulty = localStorage.getItem('snakeDifficulty') || 'medium';
+        let selectedSkin = localStorage.getItem('snakeSkin') || 'classic';
+
+        const difficultySettings = {
+            easy: { speed: 150, label: 'קל' },
+            medium: { speed: 100, label: 'בינוני' },
+            hard: { speed: 60, label: 'קשה' }
+        };
+
+        const skinSettings = {
+            classic: { colors: ['#667eea', '#764ba2'] },
+            fire: { colors: ['#ff6b6b', '#ff922b'] },
+            ocean: { colors: ['#1c7ed6', '#15aabf'] },
+            forest: { colors: ['#51cf66', '#2f9e44'] }
+        };
+
         // משתני משחק
         let snake = [{ x: 10, y: 10 }];
         let velocityX = 0;
@@ -185,13 +392,14 @@
         let foodX = 15;
         let foodY = 15;
         let score = 0;
-        let highScore = localStorage.getItem('snakeHighScore') || 0;
         let gameRunning = false;
         let gamePaused = false;
         let gameLoop;
 
-        // עדכון תצוגת השיא
-        document.getElementById('highScore').textContent = highScore;
+        // עדכון תצוגה התחלתית
+        document.getElementById('playerName').textContent = playerName;
+        document.getElementById('difficultyDisplay').textContent = difficultySettings[difficulty].label;
+        document.getElementById('playerNameInput').value = playerName;
 
         // פונקציה להתחלת המשחק
         function startGame() {
@@ -202,12 +410,11 @@
             gameRunning = true;
             gamePaused = false;
             document.getElementById('score').textContent = score;
-            document.getElementById('gameOver').classList.remove('show');
-            document.getElementById('overlay').classList.remove('show');
+            closeAllModals();
             placeFood();
 
             if (gameLoop) clearInterval(gameLoop);
-            gameLoop = setInterval(update, 100);
+            gameLoop = setInterval(update, difficultySettings[difficulty].speed);
         }
 
         // פונקציה למיקום אוכל אקראי
@@ -215,7 +422,6 @@
             foodX = Math.floor(Math.random() * tileCount);
             foodY = Math.floor(Math.random() * tileCount);
 
-            // ודא שהאוכל לא על הנחש
             for (let segment of snake) {
                 if (segment.x === foodX && segment.y === foodY) {
                     placeFood();
@@ -228,7 +434,6 @@
         function update() {
             if (!gameRunning || gamePaused) return;
 
-            // הזז את הנחש
             const head = { x: snake[0].x + velocityX, y: snake[0].y + velocityY };
 
             // בדוק התנגשות בקירות
@@ -247,7 +452,6 @@
 
             snake.unshift(head);
 
-            // בדוק אם אכל אוכל
             if (head.x === foodX && head.y === foodY) {
                 score++;
                 document.getElementById('score').textContent = score;
@@ -261,11 +465,10 @@
 
         // פונקציה לציור המשחק
         function draw() {
-            // נקה את הקנבס
             ctx.fillStyle = '#f0f0f0';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // צייר רשת
+            // רשת
             ctx.strokeStyle = '#e0e0e0';
             ctx.lineWidth = 0.5;
             for (let i = 0; i < tileCount; i++) {
@@ -279,7 +482,7 @@
                 ctx.stroke();
             }
 
-            // צייר את האוכל
+            // אוכל
             const gradient = ctx.createRadialGradient(
                 foodX * gridSize + gridSize / 2,
                 foodY * gridSize + gridSize / 2,
@@ -301,7 +504,8 @@
             );
             ctx.fill();
 
-            // צייר את הנחש
+            // נחש
+            const skinColors = skinSettings[selectedSkin].colors;
             snake.forEach((segment, index) => {
                 const snakeGradient = ctx.createLinearGradient(
                     segment.x * gridSize,
@@ -311,14 +515,12 @@
                 );
 
                 if (index === 0) {
-                    // ראש הנחש
-                    snakeGradient.addColorStop(0, '#667eea');
-                    snakeGradient.addColorStop(1, '#764ba2');
+                    snakeGradient.addColorStop(0, skinColors[0]);
+                    snakeGradient.addColorStop(1, skinColors[1]);
                 } else {
-                    // גוף הנחש
                     const alpha = 1 - (index / snake.length) * 0.5;
-                    snakeGradient.addColorStop(0, `rgba(102, 126, 234, ${alpha})`);
-                    snakeGradient.addColorStop(1, `rgba(118, 75, 162, ${alpha})`);
+                    snakeGradient.addColorStop(0, `${skinColors[0]}${Math.floor(alpha * 255).toString(16).padStart(2, '0')}`);
+                    snakeGradient.addColorStop(1, `${skinColors[1]}${Math.floor(alpha * 255).toString(16).padStart(2, '0')}`);
                 }
 
                 ctx.fillStyle = snakeGradient;
@@ -329,22 +531,22 @@
                     gridSize - 2
                 );
 
-                // צייר עיניים לראש
+                // עיניים
                 if (index === 0) {
                     ctx.fillStyle = 'white';
                     const eyeSize = 3;
                     const eyeOffset = 5;
 
-                    if (velocityX === 1) { // ימינה
+                    if (velocityX === 1) {
                         ctx.fillRect(segment.x * gridSize + gridSize - eyeOffset - eyeSize, segment.y * gridSize + eyeOffset, eyeSize, eyeSize);
                         ctx.fillRect(segment.x * gridSize + gridSize - eyeOffset - eyeSize, segment.y * gridSize + gridSize - eyeOffset - eyeSize, eyeSize, eyeSize);
-                    } else if (velocityX === -1) { // שמאלה
+                    } else if (velocityX === -1) {
                         ctx.fillRect(segment.x * gridSize + eyeOffset, segment.y * gridSize + eyeOffset, eyeSize, eyeSize);
                         ctx.fillRect(segment.x * gridSize + eyeOffset, segment.y * gridSize + gridSize - eyeOffset - eyeSize, eyeSize, eyeSize);
-                    } else if (velocityY === -1) { // למעלה
+                    } else if (velocityY === -1) {
                         ctx.fillRect(segment.x * gridSize + eyeOffset, segment.y * gridSize + eyeOffset, eyeSize, eyeSize);
                         ctx.fillRect(segment.x * gridSize + gridSize - eyeOffset - eyeSize, segment.y * gridSize + eyeOffset, eyeSize, eyeSize);
-                    } else if (velocityY === 1) { // למטה
+                    } else if (velocityY === 1) {
                         ctx.fillRect(segment.x * gridSize + eyeOffset, segment.y * gridSize + gridSize - eyeOffset - eyeSize, eyeSize, eyeSize);
                         ctx.fillRect(segment.x * gridSize + gridSize - eyeOffset - eyeSize, segment.y * gridSize + gridSize - eyeOffset - eyeSize, eyeSize, eyeSize);
                     }
@@ -359,18 +561,71 @@
 
             document.getElementById('finalScore').textContent = score;
 
-            // בדוק שיא
-            if (score > highScore) {
-                highScore = score;
-                localStorage.setItem('snakeHighScore', highScore);
-                document.getElementById('highScore').textContent = highScore;
+            // שמור בלוח שיאים
+            saveToLeaderboard(playerName, score, difficulty);
+
+            // בדוק שיא אישי
+            const personalBest = localStorage.getItem('snakeHighScore') || 0;
+            if (score > personalBest) {
+                localStorage.setItem('snakeHighScore', score);
                 document.getElementById('newRecord').style.display = 'block';
             } else {
                 document.getElementById('newRecord').style.display = 'none';
             }
 
+            showModal('gameOverModal');
+        }
+
+        // לוח שיאים
+        function saveToLeaderboard(name, score, diff) {
+            let leaderboard = JSON.parse(localStorage.getItem('snakeLeaderboard') || '[]');
+            leaderboard.push({ name, score, difficulty: diff, date: new Date().toISOString() });
+            leaderboard.sort((a, b) => b.score - a.score);
+            leaderboard = leaderboard.slice(0, 10);
+            localStorage.setItem('snakeLeaderboard', JSON.stringify(leaderboard));
+        }
+
+        function displayLeaderboard() {
+            const leaderboard = JSON.parse(localStorage.getItem('snakeLeaderboard') || '[]');
+            const content = document.getElementById('leaderboardContent');
+
+            if (leaderboard.length === 0) {
+                content.innerHTML = '<p style="color: #999;">אין עדיין שיאים...</p>';
+                return;
+            }
+
+            let html = '';
+            leaderboard.forEach((entry, index) => {
+                const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '';
+                const diffLabel = difficultySettings[entry.difficulty].label;
+                const diffClass = entry.difficulty;
+
+                html += `
+                    <div class="leaderboard-entry ${rankClass}">
+                        <span class="leaderboard-rank">#${index + 1}</span>
+                        <span class="leaderboard-name">
+                            ${entry.name}
+                            <span class="difficulty-badge ${diffClass}">${diffLabel}</span>
+                        </span>
+                        <span class="leaderboard-score">${entry.score}</span>
+                    </div>
+                `;
+            });
+
+            content.innerHTML = html;
+        }
+
+        // מודלים
+        function showModal(modalId) {
             document.getElementById('overlay').classList.add('show');
-            document.getElementById('gameOver').classList.add('show');
+            document.getElementById(modalId).classList.add('show');
+        }
+
+        function closeAllModals() {
+            document.getElementById('overlay').classList.remove('show');
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.classList.remove('show');
+            });
         }
 
         // טיפול במקלדת
@@ -416,6 +671,60 @@
         // כפתורים
         document.getElementById('restartBtn').addEventListener('click', startGame);
         document.getElementById('playAgainBtn').addEventListener('click', startGame);
+
+        document.getElementById('settingsBtn').addEventListener('click', () => {
+            showModal('settingsModal');
+        });
+
+        document.getElementById('leaderboardBtn').addEventListener('click', () => {
+            displayLeaderboard();
+            showModal('leaderboardModal');
+        });
+
+        document.getElementById('viewLeaderboardBtn').addEventListener('click', () => {
+            closeAllModals();
+            displayLeaderboard();
+            showModal('leaderboardModal');
+        });
+
+        document.getElementById('closeLeaderboardBtn').addEventListener('click', closeAllModals);
+
+        document.getElementById('saveSettingsBtn').addEventListener('click', () => {
+            playerName = document.getElementById('playerNameInput').value.trim() || 'אורח';
+            localStorage.setItem('snakePlayerName', playerName);
+            localStorage.setItem('snakeDifficulty', difficulty);
+            localStorage.setItem('snakeSkin', selectedSkin);
+
+            document.getElementById('playerName').textContent = playerName;
+            document.getElementById('difficultyDisplay').textContent = difficultySettings[difficulty].label;
+
+            startGame();
+        });
+
+        // בחירת קושי
+        document.querySelectorAll('.difficulty-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                difficulty = btn.dataset.difficulty;
+            });
+        });
+
+        // בחירת סקין
+        document.querySelectorAll('.skin-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.skin-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedSkin = btn.dataset.skin;
+            });
+        });
+
+        // סמן את הבחירות הנוכחיות
+        document.querySelector(`[data-difficulty="${difficulty}"]`).classList.add('selected');
+        document.querySelector(`[data-skin="${selectedSkin}"]`).classList.add('selected');
+
+        // overlay click
+        document.getElementById('overlay').addEventListener('click', closeAllModals);
 
         // התחל את המשחק
         draw();
