@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>סולמות ונחשים - Snakes and Ladders</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 900px;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .setup-screen {
+            display: block;
+        }
+
+        .setup-screen.hidden {
+            display: none;
+        }
+
+        .player-select {
+            margin: 30px 0;
+        }
+
+        .player-select label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+            color: #333;
+        }
+
+        .player-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .player-btn {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            background: white;
+            border: 3px solid #667eea;
+            color: #667eea;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .player-btn.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .player-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .game-screen {
+            display: none;
+        }
+
+        .game-screen.active {
+            display: block;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 2px;
+            background: #667eea;
+            padding: 5px;
+            border-radius: 10px;
+            margin: 20px auto;
+            max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.8em;
+            font-weight: bold;
+            color: #333;
+            position: relative;
+            border-radius: 3px;
+        }
+
+        .cell.ladder {
+            background: linear-gradient(135deg, #51cf66 0%, #37b24d 100%);
+            color: white;
+        }
+
+        .cell.snake {
+            background: linear-gradient(135deg, #ff6b6b 0%, #c92a2a 100%);
+            color: white;
+        }
+
+        .cell-number {
+            font-size: 0.7em;
+            margin-bottom: 2px;
+        }
+
+        .players-in-cell {
+            display: flex;
+            gap: 2px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 2px;
+        }
+
+        .player-token {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .player-info {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .player-card {
+            background: white;
+            border: 3px solid #e0e0e0;
+            padding: 15px 25px;
+            border-radius: 15px;
+            min-width: 150px;
+            transition: all 0.3s;
+        }
+
+        .player-card.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .player-name {
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+
+        .player-position {
+            font-size: 1em;
+        }
+
+        .dice-section {
+            margin: 30px 0;
+        }
+
+        .dice {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border: 3px solid #667eea;
+            border-radius: 15px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3em;
+            margin: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+        }
+
+        .dice.rolling {
+            animation: roll 0.5s ease-in-out;
+        }
+
+        @keyframes roll {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(90deg); }
+            50% { transform: rotate(180deg); }
+            75% { transform: rotate(270deg); }
+        }
+
+        button {
+            padding: 15px 40px;
+            font-size: 1.2em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message {
+            font-size: 1.3em;
+            color: #667eea;
+            font-weight: bold;
+            margin: 15px 0;
+            min-height: 30px;
+        }
+
+        .winner-screen {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            text-align: center;
+        }
+
+        .winner-screen.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -60%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+
+        .winner-screen h2 {
+            color: #764ba2;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .winner-screen p {
+            font-size: 1.5em;
+            color: #333;
+            margin: 15px 0;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0;
+            font-size: 1.1em;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-box {
+            width: 30px;
+            height: 30px;
+            border-radius: 5px;
+        }
+
+        .legend-ladder {
+            background: linear-gradient(135deg, #51cf66 0%, #37b24d 100%);
+        }
+
+        .legend-snake {
+            background: linear-gradient(135deg, #ff6b6b 0%, #c92a2a 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎲 סולמות ונחשים 🐍</h1>
+
+        <!-- Setup Screen -->
+        <div class="setup-screen" id="setupScreen">
+            <div class="player-select">
+                <label>בחר מספר שחקנים:</label>
+                <div class="player-buttons">
+                    <button class="player-btn" data-players="2">2 שחקנים</button>
+                    <button class="player-btn" data-players="3">3 שחקנים</button>
+                    <button class="player-btn" data-players="4">4 שחקנים</button>
+                </div>
+            </div>
+            <button id="startGameBtn" style="display: none;">התחל משחק!</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div class="game-screen" id="gameScreen">
+            <div class="player-info" id="playerInfo"></div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-box legend-ladder"></div>
+                    <span>סולם 🪜</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box legend-snake"></div>
+                    <span>נחש 🐍</span>
+                </div>
+            </div>
+
+            <div class="game-board" id="gameBoard"></div>
+
+            <div class="dice-section">
+                <div class="message" id="message">לחץ על הקוביה להטלה!</div>
+                <div class="dice" id="dice">?</div>
+                <div>
+                    <button id="rollDiceBtn">הטל קוביה</button>
+                    <button id="newGameBtn">משחק חדש</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="winner-screen" id="winnerScreen">
+        <h2>🎉 ניצחון! 🎉</h2>
+        <p id="winnerMessage"></p>
+        <button id="playAgainBtn">שחק שוב</button>
+    </div>
+
+    <script>
+        // הגדרת צבעי שחקנים
+        const PLAYER_COLORS = ['#ff6b6b', '#4dabf7', '#51cf66', '#ffd43b'];
+
+        // הגדרת סולמות (מ -> אל)
+        const LADDERS = {
+            3: 22,
+            5: 8,
+            11: 26,
+            20: 29,
+            17: 4,
+            19: 7,
+            21: 9,
+            27: 1
+        };
+
+        // הגדרת נחשים (מ -> אל)
+        const SNAKES = {
+            99: 54,
+            70: 55,
+            52: 29,
+            25: 2,
+            95: 24,
+            62: 18,
+            64: 36,
+            74: 8
+        };
+
+        // משתני משחק
+        let numPlayers = 0;
+        let players = [];
+        let currentPlayerIndex = 0;
+        let diceValue = 0;
+        let canRoll = true;
+
+        // אלמנטים
+        const setupScreen = document.getElementById('setupScreen');
+        const gameScreen = document.getElementById('gameScreen');
+        const gameBoard = document.getElementById('gameBoard');
+        const playerInfo = document.getElementById('playerInfo');
+        const dice = document.getElementById('dice');
+        const message = document.getElementById('message');
+        const rollDiceBtn = document.getElementById('rollDiceBtn');
+        const startGameBtn = document.getElementById('startGameBtn');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+        const winnerScreen = document.getElementById('winnerScreen');
+        const overlay = document.getElementById('overlay');
+
+        // בחירת מספר שחקנים
+        document.querySelectorAll('.player-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.player-btn').forEach(b => b.classList.remove('selected'));
+                this.classList.add('selected');
+                numPlayers = parseInt(this.dataset.players);
+                startGameBtn.style.display = 'block';
+            });
+        });
+
+        // התחלת משחק
+        startGameBtn.addEventListener('click', initGame);
+        newGameBtn.addEventListener('click', resetToSetup);
+        playAgainBtn.addEventListener('click', resetToSetup);
+
+        function resetToSetup() {
+            setupScreen.classList.remove('hidden');
+            gameScreen.classList.remove('active');
+            winnerScreen.classList.remove('show');
+            overlay.classList.remove('show');
+            document.querySelectorAll('.player-btn').forEach(b => b.classList.remove('selected'));
+            startGameBtn.style.display = 'none';
+        }
+
+        function initGame() {
+            // אתחול שחקנים
+            players = [];
+            for (let i = 0; i < numPlayers; i++) {
+                players.push({
+                    id: i + 1,
+                    name: `שחקן ${i + 1}`,
+                    position: 0,
+                    color: PLAYER_COLORS[i]
+                });
+            }
+
+            currentPlayerIndex = 0;
+            canRoll = true;
+
+            // מעבר למסך המשחק
+            setupScreen.classList.add('hidden');
+            gameScreen.classList.add('active');
+
+            // יצירת הלוח
+            createBoard();
+            updatePlayerInfo();
+            updateMessage(`תור ${players[currentPlayerIndex].name}`);
+        }
+
+        function createBoard() {
+            gameBoard.innerHTML = '';
+
+            // יצירת 100 תאים (10x10)
+            for (let i = 0; i < 100; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+
+                // חישוב מספר התא (מתחיל מ-100 ויורד)
+                const row = Math.floor(i / 10);
+                const col = i % 10;
+                let cellNumber;
+
+                // תבנית נחש (זיגזג)
+                if (row % 2 === 0) {
+                    cellNumber = 100 - (row * 10 + col);
+                } else {
+                    cellNumber = 100 - (row * 10 + (9 - col));
+                }
+
+                cell.dataset.number = cellNumber;
+
+                // סימון סולמות ונחשים
+                if (LADDERS[cellNumber]) {
+                    cell.classList.add('ladder');
+                    cell.innerHTML = `<div class="cell-number">${cellNumber}</div><div style="font-size: 0.6em;">🪜 ${LADDERS[cellNumber]}</div>`;
+                } else if (SNAKES[cellNumber]) {
+                    cell.classList.add('snake');
+                    cell.innerHTML = `<div class="cell-number">${cellNumber}</div><div style="font-size: 0.6em;">🐍 ${SNAKES[cellNumber]}</div>`;
+                } else {
+                    cell.innerHTML = `<div class="cell-number">${cellNumber}</div>`;
+                }
+
+                // הוסף מיקום לשחקנים
+                const playersContainer = document.createElement('div');
+                playersContainer.className = 'players-in-cell';
+                cell.appendChild(playersContainer);
+
+                gameBoard.appendChild(cell);
+            }
+
+            updateBoard();
+        }
+
+        function updateBoard() {
+            // נקה את כל הטוקנים
+            document.querySelectorAll('.players-in-cell').forEach(container => {
+                container.innerHTML = '';
+            });
+
+            // הוסף טוקנים לפי מיקומי השחקנים
+            players.forEach(player => {
+                if (player.position > 0) {
+                    const cell = document.querySelector(`[data-number="${player.position}"]`);
+                    if (cell) {
+                        const playersContainer = cell.querySelector('.players-in-cell');
+                        const token = document.createElement('div');
+                        token.className = 'player-token';
+                        token.style.backgroundColor = player.color;
+                        playersContainer.appendChild(token);
+                    }
+                }
+            });
+        }
+
+        function updatePlayerInfo() {
+            playerInfo.innerHTML = '';
+            players.forEach((player, index) => {
+                const card = document.createElement('div');
+                card.className = 'player-card';
+                if (index === currentPlayerIndex) {
+                    card.classList.add('active');
+                }
+
+                card.innerHTML = `
+                    <div class="player-name" style="color: ${index === currentPlayerIndex ? 'white' : player.color}">
+                        ${player.name}
+                    </div>
+                    <div class="player-position">
+                        משבצת: ${player.position}
+                    </div>
+                `;
+
+                playerInfo.appendChild(card);
+            });
+        }
+
+        function updateMessage(msg) {
+            message.textContent = msg;
+        }
+
+        // הטלת קוביה
+        rollDiceBtn.addEventListener('click', rollDice);
+
+        function rollDice() {
+            if (!canRoll) return;
+
+            canRoll = false;
+            dice.classList.add('rolling');
+
+            // אנימציה של הטלת קוביה
+            let rollCount = 0;
+            const rollInterval = setInterval(() => {
+                diceValue = Math.floor(Math.random() * 6) + 1;
+                dice.textContent = diceValue;
+                rollCount++;
+
+                if (rollCount >= 10) {
+                    clearInterval(rollInterval);
+                    dice.classList.remove('rolling');
+                    movePlayer();
+                }
+            }, 50);
+        }
+
+        function movePlayer() {
+            const player = players[currentPlayerIndex];
+            const newPosition = player.position + diceValue;
+
+            // בדיקה אם עבר את 100
+            if (newPosition > 100) {
+                updateMessage(`${player.name} הטיל ${diceValue} - יותר מדי! תור הבא.`);
+                setTimeout(nextTurn, 2000);
+                return;
+            }
+
+            player.position = newPosition;
+            updateBoard();
+            updatePlayerInfo();
+
+            // בדיקת ניצחון
+            if (player.position === 100) {
+                setTimeout(() => showWinner(player), 500);
+                return;
+            }
+
+            // בדיקת סולם או נחש
+            setTimeout(() => {
+                if (LADDERS[player.position]) {
+                    const oldPos = player.position;
+                    player.position = LADDERS[player.position];
+                    updateMessage(`${player.name} הגיע ל-${oldPos} - סולם! 🪜 עולה ל-${player.position}`);
+                    updateBoard();
+                    updatePlayerInfo();
+                    setTimeout(nextTurn, 2500);
+                } else if (SNAKES[player.position]) {
+                    const oldPos = player.position;
+                    player.position = SNAKES[player.position];
+                    updateMessage(`${player.name} הגיע ל-${oldPos} - נחש! 🐍 יורד ל-${player.position}`);
+                    updateBoard();
+                    updatePlayerInfo();
+                    setTimeout(nextTurn, 2500);
+                } else {
+                    updateMessage(`${player.name} הטיל ${diceValue} ועבר ל-${player.position}`);
+                    setTimeout(nextTurn, 2000);
+                }
+            }, 500);
+        }
+
+        function nextTurn() {
+            currentPlayerIndex = (currentPlayerIndex + 1) % numPlayers;
+            updatePlayerInfo();
+            updateMessage(`תור ${players[currentPlayerIndex].name}`);
+            canRoll = true;
+        }
+
+        function showWinner(player) {
+            document.getElementById('winnerMessage').textContent =
+                `${player.name} ניצח את המשחק! 🎊`;
+            overlay.classList.add('show');
+            winnerScreen.classList.add('show');
+        }
+    </script>
+</body>
+</html>
