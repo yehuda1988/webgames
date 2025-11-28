@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>משחקי דפדפן</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            padding: 50px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            padding: 50px 40px;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+
+        .games-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 25px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 15px;
+            font-size: 1.4em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        a:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.5);
+        }
+
+        a:active {
+            transform: translateY(-2px);
+        }
+
+        .icon {
+            font-size: 1.5em;
+        }
+
+        .footer {
+            margin-top: 40px;
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            a {
+                font-size: 1.2em;
+                padding: 20px 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 משחקי דפדפן</h1>
+        <p class="subtitle">אוסף משחקים קלאסיים וכיפיים!</p>
+
+        <div class="games-menu">
+            <a href="snakes-and-ladders.html">
+                <span class="icon">🎲</span>
+                <span>סולמות ונחשים</span>
+            </a>
+
+            <a href="snake.html">
+                <span class="icon">🐍</span>
+                <span>משחק הנחש</span>
+            </a>
+        </div>
+
+        <div class="footer">
+            <p>בחר משחק להתחלה!</p>
+        </div>
+    </div>
+</body>
+</html>
